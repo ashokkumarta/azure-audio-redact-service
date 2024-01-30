@@ -1,0 +1,12 @@
+set AZURE_CONVERSATIONS_ENDPOINT=<language-service-url>
+set AZURE_CONVERSATIONS_KEY=<language-service-key>
+set SPEECH_KEY=<speech-service-key>
+set SPEECH_REGION=<speech-service-region>
+set STORAGE_ACCOUNT=<storage-account>
+set INPUT_AUDIO_FOLDER=input-audio
+set TRANSCRIBED_FOLDER=transcribed
+set REDACTION_INFO_FOLDER=redaction-info
+set REDACTED_AUDIO_FOLDER=redacted-audio
+set REDACTION_STATUS_FOLDER=status
+set INPUT_AZURE_STORAGE_CONTAINER=batch1
+set RUN_ID=batch1
