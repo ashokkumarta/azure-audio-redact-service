@@ -31,11 +31,13 @@ Cognitive Services Contributor
 Cognitive Services Speech Contributor
 Storage Account Contributor 
 Storage Blob Data Contributor
+TODO: Role to assign Storage Blob Data Reader to speed service on storage account
 ```
 
 Scripts to copy/delete folder to/from Azure storage
 ---------------------------------------------------
 ```
+azcopy login -> to login for device authentication
 copy_to_az.bat
 del_from_az.bat
 ```

@@ -39,9 +39,17 @@ def get_audio_duration(file_name):
     ffprobe_cmd = FFPROBE_CMD_TPL.replace('{file_name}',file_name)
     return subprocess.getoutput(ffprobe_cmd)
 
+def init_status_file(status_file):
+    os.makedirs(os.path.dirname(status_file), exist_ok=True)
+    with open(status_file, "w") as f:
+        f.write('Audio File,Duration(secs),Status,PII Action\n')
+
+
 def write_status(file_name, status):
     status_file = get_env('REDACTION_STATUS_FOLDER') + '.csv'
-    os.makedirs(os.path.dirname(status_file), exist_ok=True)
+    if(not os.path.exists(status_file)):
+        init_status_file(status_file)
+
     duration = get_audio_duration(file_name)
     with open(status_file, "a") as f:
         f.write(file_name + ',' + duration + ',' + 'Processed' + ',' + status +'\n')
@@ -90,6 +98,9 @@ def batch_transcribe():
         batch_status = get_batch_transcribe_status(batch_response.json().get('self'))
         print('Transcription status: '+batch_status)
         time.sleep(2)
+    if(batch_status in ('Failed')):
+        print('Audio transcription failed. Exiting')
+        os._exit(-1)
     transcribed_report_url = batch_response.json().get('links').get('files')
     transcribed_report = get_transcribed_report(transcribed_report_url)
     print('Transcribed output files: \n'+str(transcribed_report))
