@@ -52,7 +52,7 @@ def write_status(source_file_name, status):
     duration = get_audio_duration(source_file_name)
     status_file = get_env('REDACTION_STATUS_FOLDER') + '.csv'
     with open(status_file, "a") as f:
-        f.write(source_file_name + ',' + duration + ',' + 'Processed' + ',' + status + target_file_name  +'\n')
+        f.write(source_file_name + ',' + duration + ',' + 'Processed' + ',' + status + ',' + target_file_name  +'\n')
 
 
 def write_transcribed_files(file_name, transcribed_content):
