@@ -59,13 +59,13 @@ del_from_az.bat
 Configuration properties to set (Environment variables)
 -------------------------------------------------------
 ```
-RUN_ID=<String ID to track the batch runrun>
 AZURE_CONVERSATIONS_ENDPOINT=<language service url>
 AZURE_CONVERSATIONS_KEY=<language service key>
 AZURE_SPEECH_KEY=<speech service key>
 AZURE_SPEECH_REGION=<speech service region>
 AZURE_STORAGE_ACCOUNT=<storage account>
 AZURE_STORAGE_CONTAINER=<container to use>
+#TODO: Remove these and move required attributes to command line
 INPUT_AUDIO_FOLDER=<origional audios folder>
 TRANSCRIBED_FOLDER=<transcribed content folder>
 REDACTION_INFO_FOLDER=<redaction info content folder>
@@ -79,7 +79,7 @@ Onetime setup
 Install the tools
 Install python modules
 Setup Azure account with required permissions  
-With this Azure account, create Azure services
+With this Azure account, create required Azure services and grant RABC permissions
 Setup configuration properties as environment variables
 ```
 
@@ -91,8 +91,8 @@ Execute redaction script
     
     python run.py <azure_container> [Redact Category] [Redact Category] ... 
 
-    Supported Redact Categories: Name, Phone, Address, Email, NumericIdentifier, CreditCard
-    By default applies Redact Category: CreditCard, which can be overridden by passing the redact categories to be applied as optional parameters 
+Supported Redact Categories: Name, Phone, Address, Email, NumericIdentifier, CreditCard
+By default applies Redact Category: CreditCard, which can be overridden by passing the redact categories to be applied as optional parameters 
     
 ```
 
