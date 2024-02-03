@@ -298,3 +298,4 @@ def generate_redacted_audios():
                 print('Skipping redaction for: ', get_input_audio_file(redact_info_file_name))
                 copy_file(redact_info_file_name)
                 write_status(get_input_audio_file(redact_info_file_name), 'No PII')
+    complete_status_file()
