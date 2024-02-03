@@ -51,9 +51,9 @@ def complete_status_file():
     status_file = get_env('REDACTION_STATUS_FOLDER') + '.csv'
     with open(status_file, "a") as f:
         f.write('\n')
-        f.write('Generated at,'+datetime.today().isoformat()+'\n')
-        f.write('Redaction Categories Applied:\n')
-        f.write(str(redact_categories))
+        f.write('Generated at,'+datetime.today().isoformat()+',,,\n')
+        f.write('Redaction Categories Applied:,,,,\n')
+        f.write(str(redact_categories)+',,,,\n')
 
 def write_status(source_file_name, status):
     target_file_name = source_file_name.replace(get_env('INPUT_AUDIO_FOLDER'), get_env('REDACTED_AUDIO_FOLDER'))
