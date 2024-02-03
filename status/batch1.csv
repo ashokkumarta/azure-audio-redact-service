@@ -1,3 +1,3 @@
-Audio File,Duration(secs),Status,PII Action
-input-audio\batch1\20230607_me_canadian_wildfires.mp3,281.051375,Processed,No PII
-input-audio\batch1\orig\original-audio.mp3,56.088000,Processed,Redaction done
+Source File,Duration(secs),Status,PII Action,Target File
+input-audio\batch1\20230607_me_canadian_wildfires.mp3,281.051375,Processed,No PIIredacted-audio\batch1\20230607_me_canadian_wildfires.mp3
+input-audio\batch1\orig\original-audio.mp3,56.088000,Processed,Redaction doneredacted-audio\batch1\orig\original-audio.mp3

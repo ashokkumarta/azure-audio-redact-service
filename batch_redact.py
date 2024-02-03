@@ -45,13 +45,14 @@ def init_status_file():
     status_file = get_env('REDACTION_STATUS_FOLDER') + '.csv'
     os.makedirs(os.path.dirname(status_file), exist_ok=True)
     with open(status_file, "w") as f:
-        f.write('Audio File,Duration(secs),Status,PII Action\n')
+        f.write('Source File,Duration(secs),Status,PII Action,Target File\n')
 
-def write_status(file_name, status):
-    duration = get_audio_duration(file_name)
+def write_status(source_file_name, status):
+    target_file_name = source_file_name.replace(get_env('INPUT_AUDIO_FOLDER'), get_env('REDACTED_AUDIO_FOLDER'))
+    duration = get_audio_duration(source_file_name)
     status_file = get_env('REDACTION_STATUS_FOLDER') + '.csv'
     with open(status_file, "a") as f:
-        f.write(file_name + ',' + duration + ',' + 'Processed' + ',' + status +'\n')
+        f.write(source_file_name + ',' + duration + ',' + 'Processed' + ',' + status + target_file_name  +'\n')
 
 
 def write_transcribed_files(file_name, transcribed_content):
