@@ -16,14 +16,6 @@ pip install azure-cognitiveservices-speech
 pip install azure-ai-language-conversations==1.1.0b2
 ```
 
-Azure services used
--------------------
-```
-Storage account
-Speech service
-Language
-```
-
 Azure Permissions required
 --------------------------
 ```
@@ -34,6 +26,28 @@ Storage Blob Data Contributor
 TODO: Role to assign Storage Blob Data Reader to speed service on storage account
 ```
 
+Azure services used
+-------------------
+```
+Storage account
+Speech service
+Language
+```
+
+Assign RABC for Azure services 
+-------------------
+```
+Storage account
+- TODO: Permissions to assign
+
+Speech service
+- TODO: Permissions to assign
+
+Language
+- TODO: Permissions to assign
+
+```
+
 Scripts to copy/delete folder to/from Azure storage
 ---------------------------------------------------
 ```
@@ -42,19 +56,55 @@ copy_to_az.bat
 del_from_az.bat
 ```
 
-Environment variables to set
-----------------------------
+Configuration properties to set (Environment variables)
+-------------------------------------------------------
 ```
-set AZURE_CONVERSATIONS_ENDPOINT=<language service url>
-set AZURE_CONVERSATIONS_KEY=<language service key>
-set SPEECH_KEY=<speech service key>
-set SPEECH_REGION=<speech service region>
-set STORAGE_ACCOUNT=<storage account>
-set INPUT_AUDIO_FOLDER=input-audio
-set TRANSCRIBED_FOLDER=transcribed
-set REDACTION_INFO_FOLDER=redaction-info
-set REDACTED_AUDIO_FOLDER=redacted-audio
-set REDACTION_STATUS_FOLDER=status
-set INPUT_AZURE_STORAGE_CONTAINER=batch1
-set RUN_ID=batch1
+RUN_ID=<String ID to track the batch runrun>
+AZURE_CONVERSATIONS_ENDPOINT=<language service url>
+AZURE_CONVERSATIONS_KEY=<language service key>
+AZURE_SPEECH_KEY=<speech service key>
+AZURE_SPEECH_REGION=<speech service region>
+AZURE_STORAGE_ACCOUNT=<storage account>
+AZURE_STORAGE_CONTAINER=<container to use>
+INPUT_AUDIO_FOLDER=<origional audios folder>
+TRANSCRIBED_FOLDER=<transcribed content folder>
+REDACTION_INFO_FOLDER=<redaction info content folder>
+REDACTED_AUDIO_FOLDER=<redacted output audios folder>
+REDACTION_STATUS_FOLDER=<status reports folder>
+```
+
+Onetime setup
+-------------
+```
+Install the tools
+Install python modules
+Setup Azure account with required permissions  
+With this Azure account, create Azure services
+Setup configuration properties as environment variables
+```
+
+Steps to execute each batch
+---------------------------
+```
+Run azcopy from INPUT_AUDIO_FOLDER to upload origional audios to Azure storage container
+Execute redaction script
+    
+    python run.py <azure_container> [Redact Category] [Redact Category] ... 
+
+    Supported Redact Categories: Name, Phone, Address, Email, NumericIdentifier, CreditCard
+    By default applies Redact Category: CreditCard, which can be overridden by passing the redact categories to be applied as optional parameters 
+    
+```
+
+References
+---------------------------
+```
+https://learn.microsoft.com/en-us/azure/ai-services/speech-service/batch-transcription-create?pivots=speech-cli
+https://learn.microsoft.com/en-us/azure/ai-services/language-service/personally-identifiable-information/overview
+https://learn.microsoft.com/en-us/azure/ai-services/language-service/personally-identifiable-information/how-to-call-for-conversations?tabs=client-libraries
+https://learn.microsoft.com/en-us/python/api/overview/azure/ai-textanalytics-readme?view=azure-python&viewFallbackFrom=azure-python-preview&preserve-view=true
+https://github.com/Azure/azure-sdk-for-python/tree/main/sdk/textanalytics/azure-ai-textanalytics/samples
+https://learn.microsoft.com/en-us/azure/ai-services/language-service/personally-identifiable-information/concepts/conversations-entity-categories
+https://www.reddit.com/r/ffmpeg/comments/r0at91/beeping_out_portions_of_an_audio_file_using_ffmpeg/
+
 ```

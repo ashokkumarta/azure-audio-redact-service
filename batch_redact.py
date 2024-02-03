@@ -1,10 +1,12 @@
 # import libraries
-import os, subprocess
+import os, subprocess, shutil
 import requests, json
 import time, uuid
 from pathlib import Path
 from azure.core.credentials import AzureKeyCredential
 from azure.ai.language.conversations import ConversationAnalysisClient
+
+global redact_categories
 
 FFMPEG_CMD_TPL = "ffmpeg -hide_banner -loglevel error -i \"{input_audio_file}\" -filter_complex \"[0]volume=0:enable=' {pii_section} '[main];sine=f=800,pan=stereo|FL=c0|FR=c0,volume=0:enable='{nonpii_section}'[beep];[main][beep]amix=inputs=2:duration=first\" {output_audio_file} -y"
 FFPROBE_CMD_TPL = 'ffprobe -i {file_name} -show_entries format=duration -v quiet -of csv="p=0"'
@@ -19,14 +21,14 @@ def get_env(name, folder=True):
 
 def get_batch_transcribe_status(batch_transcribe_url):
     batch_transcribe_status_headers = {
-            'Ocp-Apim-Subscription-Key': get_env('SPEECH_KEY', False),
+            'Ocp-Apim-Subscription-Key': get_env('AZURE_SPEECH_KEY', False),
         }
     batch_status_response = requests.get(batch_transcribe_url, headers = batch_transcribe_status_headers)
     return batch_status_response.json().get('status')
 
 def get_transcribed_report(transcribed_report_url):
     batch_transcribe_status_headers = {
-            'Ocp-Apim-Subscription-Key': get_env('SPEECH_KEY', False),
+            'Ocp-Apim-Subscription-Key': get_env('AZURE_SPEECH_KEY', False),
         }
     batch_status_response = requests.get(transcribed_report_url, headers = batch_transcribe_status_headers)
     return batch_status_response.json()
@@ -39,24 +41,21 @@ def get_audio_duration(file_name):
     ffprobe_cmd = FFPROBE_CMD_TPL.replace('{file_name}',file_name)
     return subprocess.getoutput(ffprobe_cmd)
 
-def init_status_file(status_file):
+def init_status_file():
+    status_file = get_env('REDACTION_STATUS_FOLDER') + '.csv'
     os.makedirs(os.path.dirname(status_file), exist_ok=True)
     with open(status_file, "w") as f:
         f.write('Audio File,Duration(secs),Status,PII Action\n')
 
-
 def write_status(file_name, status):
-    status_file = get_env('REDACTION_STATUS_FOLDER') + '.csv'
-    if(not os.path.exists(status_file)):
-        init_status_file(status_file)
-
     duration = get_audio_duration(file_name)
+    status_file = get_env('REDACTION_STATUS_FOLDER') + '.csv'
     with open(status_file, "a") as f:
         f.write(file_name + ',' + duration + ',' + 'Processed' + ',' + status +'\n')
 
 
 def write_transcribed_files(file_name, transcribed_content):
-    output_file = file_name.replace(get_env('INPUT_AZURE_STORAGE_CONTAINER', False), get_env('TRANSCRIBED_FOLDER'))
+    output_file = file_name.replace(get_env('AZURE_STORAGE_CONTAINER', False), get_env('TRANSCRIBED_FOLDER'))
     print('Writing transcribed content to %s' % (output_file))
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "w") as f:
@@ -71,10 +70,10 @@ def write_redaction_info_files(file_name, redaction_info_content):
 
 def batch_transcribe():
     print('Initializing SPEECH TO TEXT Batch Transcription')
-    speech_svc_url = 'https://'+get_env('SPEECH_REGION', False)+'.api.cognitive.microsoft.com/speechtotext/v3.1/transcriptions'
+    speech_svc_url = 'https://'+get_env('AZURE_SPEECH_REGION', False)+'.api.cognitive.microsoft.com/speechtotext/v3.1/transcriptions'
     print('Service URL initialized to: '+speech_svc_url)
     speech_svc_payload = str({
-        'contentContainerUrl': 'https://'+get_env('STORAGE_ACCOUNT', False)+'.blob.core.windows.net/'+get_env('INPUT_AZURE_STORAGE_CONTAINER', False),
+        'contentContainerUrl': 'https://'+get_env('AZURE_STORAGE_ACCOUNT', False)+'.blob.core.windows.net/'+get_env('AZURE_STORAGE_CONTAINER', False),
         'locale': 'en-US',
         'displayName': 'Redact Run '+str(round(time.time()*1000)),
         'properties': {
@@ -83,7 +82,7 @@ def batch_transcribe():
     })
     print('Payload initialized to: '+speech_svc_payload)
     speech_svc_headers = {
-            'Ocp-Apim-Subscription-Key': get_env('SPEECH_KEY', False),
+            'Ocp-Apim-Subscription-Key': get_env('AZURE_SPEECH_KEY', False),
             'Content-Type': 'application/json',
         }
     print('Headers initialized to: '+str(speech_svc_headers))
@@ -105,7 +104,6 @@ def batch_transcribe():
     transcribed_report = get_transcribed_report(transcribed_report_url)
     print('Transcribed output files: \n'+str(transcribed_report))
     return transcribed_report
-
 
 def fetch_transcribed_files(transcribed_report): 
     output_values = transcribed_report['values']
@@ -143,8 +141,8 @@ def create_conversation_items(recognized_phrases):
         conversation_items.append(conversation_item)
     return conversation_items
 
-
-def create_language_service_payload(transcribed_content_json): 
+def create_language_service_payload(transcribed_content_json):
+    print('Applying Redact categories: %s' % redact_categories)
     lang_payload = {
             'displayName': 'Redact PII run'+str(round(time.time()*1000)),
             'analysisInput': {
@@ -164,9 +162,7 @@ def create_language_service_payload(transcribed_content_json):
                         'modelVersion': '2022-05-15-preview',
                         'redactionSource': 'text',
                         'includeAudioRedaction': True,
-                        'piiCategories': [
-                            'CreditCard'
-                        ]
+                        'piiCategories': list(redact_categories)
                     }
                 }
             ]
@@ -174,7 +170,6 @@ def create_language_service_payload(transcribed_content_json):
     conversation_items = create_conversation_items(transcribed_content_json['recognizedPhrases'])
     lang_payload['analysisInput']['conversations'][0]['conversationItems'] = conversation_items
     return lang_payload
-
 
 def generate_redact_info_using_language_service(language_service_payload):
     # get secrets
@@ -222,6 +217,11 @@ def generate_redaction_info():
 def get_input_audio_file(redact_info_file):
     return redact_info_file.rstrip(".json").replace(get_env('REDACTION_INFO_FOLDER'), get_env('INPUT_AUDIO_FOLDER'))
 
+def copy_file(redact_info_file):
+    input_audio_file = get_input_audio_file(redact_info_file)
+    output_audio_file = input_audio_file.replace(get_env('INPUT_AUDIO_FOLDER'), get_env('REDACTED_AUDIO_FOLDER'))
+    shutil.copy(input_audio_file, output_audio_file)
+
 def redact_audio(redact_info_file, pii_section, nonpii_section):
 
     input_audio_file = get_input_audio_file(redact_info_file)
@@ -243,14 +243,12 @@ def redact_audio(redact_info_file, pii_section, nonpii_section):
     print('FFMPEG process complete')
     print('Redacted audio stored at: ',output_audio_file)
 
-
 def append_ffmpeg_time_segment(section, start, end):
     if(section):
         section = section + "+between(t,"+str(start)+","+str(end)+")"
     else:
         section ="between(t,"+str(start)+","+str(end)+")"
     return section
-
 
 def create_ffmpeg_pii_sections(redact_info_content_json):
 
@@ -273,6 +271,7 @@ def create_ffmpeg_pii_sections(redact_info_content_json):
     return None, None
 
 def generate_redacted_audios():
+    init_status_file()
     for path, subdirs, files in os.walk(get_env('REDACTION_INFO_FOLDER')):
         for name in files:
             redact_info_file_name = os.path.join(path, name)
@@ -288,19 +287,5 @@ def generate_redacted_audios():
             else:
                 print('No PII found', redact_info_file_name)
                 print('Skipping redaction for: ', get_input_audio_file(redact_info_file_name))
+                copy_file(redact_info_file_name)
                 write_status(get_input_audio_file(redact_info_file_name), 'No PII')
-
-
-print('\nTRANSCRIBING AUDIOS\n')
-transcribed_report = batch_transcribe()
-##transcribed_report = get_transcribed_report('https://eastus.api.cognitive.microsoft.com/speechtotext/v3.1/transcriptions/c4554cf2-1bc6-4fc0-a177-f8b4c31cd1c2/files')
-
-print('\nFETCHING TRANSCRIBED CONTENT\n')
-fetch_transcribed_files(transcribed_report)
-
-print('\nGENERATING REDACTION INFO\n')
-generate_redaction_info()
-
-print('\nGENERATING REDACTED AUDIOS\n')
-generate_redacted_audios()
-print('\nPROCRESSING COMPLETE\n')
