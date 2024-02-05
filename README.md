@@ -64,13 +64,7 @@ AZURE_CONVERSATIONS_KEY=<language service key>
 AZURE_SPEECH_KEY=<speech service key>
 AZURE_SPEECH_REGION=<speech service region>
 AZURE_STORAGE_ACCOUNT=<storage account>
-AZURE_STORAGE_CONTAINER=<container to use>
 #TODO: Remove these and move required attributes to command line
-INPUT_AUDIO_FOLDER=<origional audios folder>
-TRANSCRIBED_FOLDER=<transcribed content folder>
-REDACTION_INFO_FOLDER=<redaction info content folder>
-REDACTED_AUDIO_FOLDER=<redacted output audios folder>
-REDACTION_STATUS_FOLDER=<status reports folder>
 ```
 
 Onetime setup
@@ -89,7 +83,7 @@ Steps to execute each batch
 Run azcopy from INPUT_AUDIO_FOLDER to upload origional audios to Azure storage container
 Execute redaction script
     
-    python run.py <azure_container> [Redact Category] [Redact Category] ... 
+    python run.py <input_audios_folder> <azure_container> [RedactCategory1 RedactCategory2 ...]
 
 Supported Redact Categories: Name, Phone, Address, Email, NumericIdentifier, CreditCard
 By default applies Redact Category: CreditCard, which can be overridden by passing the redact categories to be applied as optional parameters 

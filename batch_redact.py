@@ -44,6 +44,7 @@ def get_audio_duration(file_name):
 
 def init_status_file():
     status_file = get_env('REDACTION_STATUS_FOLDER') + '.csv'
+    os.makedirs(os.path.dirname(status_file), exist_ok=True)
     with open(status_file, "w") as f:
         f.write('Source File,Duration(secs),Status,PII Action,Target File\n')
 
@@ -51,7 +52,7 @@ def complete_status_file():
     status_file = get_env('REDACTION_STATUS_FOLDER') + '.csv'
     with open(status_file, "a") as f:
         f.write('\n')
-        f.write('Generated at,'+datetime.today().isoformat()+'\n')
+        f.write('Generated at:,'+datetime.today().isoformat()+'\n')
         f.write('Redaction Categories Applied:,'+str(redact_categories)+'\n')
 
 def write_status(source_file_name, status):
