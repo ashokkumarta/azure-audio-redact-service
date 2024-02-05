@@ -1,0 +1,11 @@
+
+Run at: 2024-02-05T23:25:54.290153
+INPUT_AUDIO_FOLDER: input-audio
+RUN_ID: batch1
+AZURE_STORAGE_CONTAINER: batch1
+TRANSCRIBED_FOLDER: transcribed
+REDACTION_INFO_FOLDER: redaction-info
+REDACTED_AUDIO_FOLDER: redacted-audio
+REDACTION_STATUS_FOLDER: status
+Redaction Categories Applied: {'CreditCard'}
+Run status: Success

@@ -40,25 +40,33 @@ def get_file(file_url):
 
 def get_audio_duration(file_name):
     ffprobe_cmd = FFPROBE_CMD_TPL.replace('{file_name}',file_name)
-    return subprocess.getoutput(ffprobe_cmd)
+    return str(round(float(subprocess.getoutput(ffprobe_cmd)),2))
 
 def init_status_file():
-    status_file = get_env('REDACTION_STATUS_FOLDER') + '.csv'
+    status_file = get_env('REDACTION_STATUS_FOLDER') + '-redaction-details.csv'
     os.makedirs(os.path.dirname(status_file), exist_ok=True)
     with open(status_file, "w") as f:
         f.write('Source File,Duration(secs),Status,PII Action,Target File\n')
 
-def complete_status_file():
-    status_file = get_env('REDACTION_STATUS_FOLDER') + '.csv'
-    with open(status_file, "a") as f:
+def write_summary():
+    summary_file = get_env('REDACTION_STATUS_FOLDER') + '-run-summary.rpt'
+    with open(summary_file, "a") as f:
         f.write('\n')
-        f.write('Generated at:,'+datetime.today().isoformat()+'\n')
-        f.write('Redaction Categories Applied:,'+str(redact_categories)+'\n')
+        f.write('Run at: '+datetime.today().isoformat()+'\n')
+        f.write('INPUT_AUDIO_FOLDER: '+os.environ['INPUT_AUDIO_FOLDER']+'\n')
+        f.write('RUN_ID: '+os.environ['RUN_ID']+'\n')
+        f.write('AZURE_STORAGE_CONTAINER: '+os.environ['AZURE_STORAGE_CONTAINER']+'\n')
+        f.write('TRANSCRIBED_FOLDER: '+os.environ['TRANSCRIBED_FOLDER']+'\n')
+        f.write('REDACTION_INFO_FOLDER: '+os.environ['REDACTION_INFO_FOLDER']+'\n')
+        f.write('REDACTED_AUDIO_FOLDER: '+os.environ['REDACTED_AUDIO_FOLDER']+'\n')
+        f.write('REDACTION_STATUS_FOLDER: '+os.environ['REDACTION_STATUS_FOLDER']+'\n')
+        f.write('Redaction Categories Applied: '+str(redact_categories)+'\n')
+        f.write('Run status: Success\n')
 
 def write_status(source_file_name, status):
     target_file_name = source_file_name.replace(get_env('INPUT_AUDIO_FOLDER'), get_env('REDACTED_AUDIO_FOLDER'))
     duration = get_audio_duration(source_file_name)
-    status_file = get_env('REDACTION_STATUS_FOLDER') + '.csv'
+    status_file = get_env('REDACTION_STATUS_FOLDER') + '-redaction-details.csv'
     with open(status_file, "a") as f:
         f.write(source_file_name + ',' + duration + ',' + 'Processed' + ',' + status + ',' + target_file_name  +'\n')
 
@@ -229,6 +237,7 @@ def get_input_audio_file(redact_info_file):
 def copy_file(redact_info_file):
     input_audio_file = get_input_audio_file(redact_info_file)
     output_audio_file = input_audio_file.replace(get_env('INPUT_AUDIO_FOLDER'), get_env('REDACTED_AUDIO_FOLDER'))
+    os.makedirs(os.path.dirname(output_audio_file), exist_ok=True)
     shutil.copy(input_audio_file, output_audio_file)
 
 def redact_audio(redact_info_file, pii_section, nonpii_section):
@@ -298,4 +307,4 @@ def generate_redacted_audios():
                 print('Skipping redaction for: ', get_input_audio_file(redact_info_file_name))
                 copy_file(redact_info_file_name)
                 write_status(get_input_audio_file(redact_info_file_name), 'No PII')
-    complete_status_file()
+    write_summary()
