@@ -16,44 +16,42 @@ pip install azure-cognitiveservices-speech
 pip install azure-ai-language-conversations==1.1.0b2
 ```
 
-Azure Permissions required
+
+
+Permissions for Azure user
 --------------------------
 ```
-Cognitive Services Contributor
-Cognitive Services Speech Contributor
-Storage Account Contributor 
-Storage Blob Data Contributor
-TODO: Role to assign Storage Blob Data Reader to speed service on storage account
+Create or get an Azure user with following permissions for a resource group
+- Cognitive Services Contributor
+- Cognitive Services Speech Contributor
+- Storage Account Contributor 
+- Storage Blob Data Contributor
+
+TODO: Role to assign Storage Blob Data Reader to speech service on storage account
 ```
 
-Azure services used
--------------------
-```
-Storage account
-Speech service
-Language
-```
-
-Assign RABC for Azure services 
--------------------
+Azure services required
+-----------------------
 ```
 Storage account
-- TODO: Permissions to assign
+Speech services
+Language service
+```
 
-Speech service
-- TODO: Permissions to assign
-
-Language
-- TODO: Permissions to assign
+RABC permissions for Azure services 
+-----------------------------------
+```
+Storage account
+- Grant Storage Blob Data Reader access to the Speech Service
 
 ```
 
-Scripts to copy/delete folder to/from Azure storage
----------------------------------------------------
+Scripts to upload/delete audiods to/from Azure storage
+------------------------------------------------------
 ```
 azcopy login -> to login for device authentication
-copy_to_az.bat
-del_from_az.bat
+copy_to_az.bat -> run it from the folder you want to upload to Azure
+del_from_az.bat -> run it from the folder you want to delete from Azure
 ```
 
 Configuration properties to set (Environment variables)
@@ -64,30 +62,36 @@ AZURE_CONVERSATIONS_KEY=<language service key>
 AZURE_SPEECH_KEY=<speech service key>
 AZURE_SPEECH_REGION=<speech service region>
 AZURE_STORAGE_ACCOUNT=<storage account>
-#TODO: Remove these and move required attributes to command line
 ```
 
 Onetime setup
 -------------
 ```
-Install the tools
-Install python modules
-Setup Azure account with required permissions  
-With this Azure account, create required Azure services and grant RABC permissions
-Setup configuration properties as environment variables
+1. Install the tools
+2. Install python modules
+3. Create of get an Azure user account with required permissions  
+4. With this Azure user account, create the required Azure services and grant RABC permissions
+5. Setup configuration properties as environment variables
 ```
 
 Steps to execute each batch
 ---------------------------
 ```
-Run azcopy from INPUT_AUDIO_FOLDER to upload origional audios to Azure storage container
-Execute redaction script
-    
-    python run.py <input_audios_folder> <azure_container> [RedactCategory1 RedactCategory2 ...]
+1. Run azcopy from input_audios_folder to upload origional audios to Azure storage container
+2. Execute redaction script using the below command
 
-Supported Redact Categories: Name, Phone, Address, Email, NumericIdentifier, CreditCard
-By default applies Redact Category: CreditCard, which can be overridden by passing the redact categories to be applied as optional parameters 
+     python run.py <input_audios_folder> <azure_container> [RedactCategory1 RedactCategory2 ...]
+   
+   Supported Redact Categories: Name, Phone, Address, Email, NumericIdentifier, CreditCard
+   Applies Redact Category: CreditCard, if no redact categories are passed in the optional parameter 
     
+```
+
+Tested on
+---------
+```
+Windows 11, 64-bit operating system, x64-based processor / Intel(R) Core(TM) i5-10210U CPU
+
 ```
 
 References

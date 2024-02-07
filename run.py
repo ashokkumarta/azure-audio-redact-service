@@ -37,7 +37,7 @@ def initialize():
 
     print('Redact categories to be applied: %s' % _br.redact_categories)
     print('Starting the batch run with RUN_ID: %s using AZURE_STORAGE_CONTAINER: %s' % (batch_id, azure_container))
-    os.environ['INPUT_AUDIO_FOLDER'] = input_audios_folder
+    os.environ['INPUT_AUDIOS_FOLDER'] = input_audios_folder
     os.environ['RUN_ID'] = batch_id
     os.environ['AZURE_STORAGE_CONTAINER'] = azure_container
     os.environ['TRANSCRIBED_FOLDER'] = 'transcribed'

@@ -53,7 +53,7 @@ def write_summary():
     with open(summary_file, "a") as f:
         f.write('\n')
         f.write('Run at: '+datetime.today().isoformat()+'\n')
-        f.write('INPUT_AUDIO_FOLDER: '+os.environ['INPUT_AUDIO_FOLDER']+'\n')
+        f.write('INPUT_AUDIOS_FOLDER: '+os.environ['INPUT_AUDIOS_FOLDER']+'\n')
         f.write('RUN_ID: '+os.environ['RUN_ID']+'\n')
         f.write('AZURE_STORAGE_CONTAINER: '+os.environ['AZURE_STORAGE_CONTAINER']+'\n')
         f.write('TRANSCRIBED_FOLDER: '+os.environ['TRANSCRIBED_FOLDER']+'\n')
@@ -64,7 +64,7 @@ def write_summary():
         f.write('Run status: Success\n')
 
 def write_status(source_file_name, status):
-    target_file_name = source_file_name.replace(get_env('INPUT_AUDIO_FOLDER'), get_env('REDACTED_AUDIO_FOLDER'))
+    target_file_name = source_file_name.replace(get_env('INPUT_AUDIOS_FOLDER'), get_env('REDACTED_AUDIO_FOLDER'))
     duration = get_audio_duration(source_file_name)
     status_file = get_env('REDACTION_STATUS_FOLDER') + '-redaction-details.csv'
     with open(status_file, "a") as f:
@@ -232,18 +232,18 @@ def generate_redaction_info():
     print('Redaction info processing for all files complete')
 
 def get_input_audio_file(redact_info_file):
-    return redact_info_file.rstrip(".json").replace(get_env('REDACTION_INFO_FOLDER'), get_env('INPUT_AUDIO_FOLDER'))
+    return redact_info_file.rstrip(".json").replace(get_env('REDACTION_INFO_FOLDER'), get_env('INPUT_AUDIOS_FOLDER'))
 
 def copy_file(redact_info_file):
     input_audio_file = get_input_audio_file(redact_info_file)
-    output_audio_file = input_audio_file.replace(get_env('INPUT_AUDIO_FOLDER'), get_env('REDACTED_AUDIO_FOLDER'))
+    output_audio_file = input_audio_file.replace(get_env('INPUT_AUDIOS_FOLDER'), get_env('REDACTED_AUDIO_FOLDER'))
     os.makedirs(os.path.dirname(output_audio_file), exist_ok=True)
     shutil.copy(input_audio_file, output_audio_file)
 
 def redact_audio(redact_info_file, pii_section, nonpii_section):
 
     input_audio_file = get_input_audio_file(redact_info_file)
-    output_audio_file = input_audio_file.replace(get_env('INPUT_AUDIO_FOLDER'), get_env('REDACTED_AUDIO_FOLDER'))
+    output_audio_file = input_audio_file.replace(get_env('INPUT_AUDIOS_FOLDER'), get_env('REDACTED_AUDIO_FOLDER'))
 
     ffmpeg_cmd = FFMPEG_CMD_TPL.replace('{input_audio_file}',input_audio_file)
     ffmpeg_cmd = ffmpeg_cmd.replace('{pii_section}',pii_section)
